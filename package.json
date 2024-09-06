@@ -1,0 +1,22 @@
+{
+  "name": "world-wide-canvas",
+  "version": "1.0.0",
+  "description": "this is a side project to make a huge real time canvas in the most vanilla way ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vanilla",
+    "canvas",
+    "websocket",
+    "banegasn",
+    "worldwide",
+    "public"
+  ],
+  "author": "banegasn",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
