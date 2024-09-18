@@ -4,7 +4,8 @@
   "description": "this is a side project to make a huge real time canvas in the most vanilla way ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --watch server.mjs"
   },
   "keywords": [
     "vanilla",
