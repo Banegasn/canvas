@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import http from "http";
 import path from "path";
-import fs, { stat } from "fs";
+import fs from "fs";
 
 const PORT = 4200;
 const SOCKET_PORT = 3000;
@@ -76,10 +76,8 @@ const onMessage = (message) => {
     pixels++;
     savePixel(data);
     clients.forEach(client => {
-        // check if client is sender
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN) {
             client.send(message, { binary: false });
-            console.log('sending new state');
         }
     });
 };
@@ -94,7 +92,7 @@ const onClose = () => {
 
 wss.on('connection', (ws) => {
     clients.push(ws);
-    ws.send(JSON.stringify({ type: 'STATE', settings: { width: WIDTH, height: HEIGHT }, state: state.toString() }));
+    ws.send(JSON.stringify({ type: 'STATE', settings: { width: WIDTH, height: HEIGHT }, state: state.map(elem => elem === 0 ? '' : elem).toString() }));
     ws.on('message', onMessage);
     ws.on('close', onClose);
 });
@@ -112,9 +110,8 @@ function returnFile(req, res, contentType) {
 
 const ws = http.createServer((req, res) => {
     try {
-        if (req.url === '/') {
-            res.writeHead(HTTP_STATUS_CODES.OK, { 'Content-Type': 'text/html' });
-            return fs.createReadStream(path.resolve('', CLIENT_BASE_PATH, 'index.html')).pipe(res);
+        if (req.url === '/' || req.url.indexOf('.html') > 0) {
+            return returnFile({ ...req, url: req.url === '/' ? '/index.html' : req.url }, res, 'text/html');
         } else if (req.url.indexOf('.mjs') || req.url.indexOf('.js')) {
             return returnFile(req, res, 'application/javascript');
         }

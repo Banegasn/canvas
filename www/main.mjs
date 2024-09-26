@@ -5,24 +5,21 @@ const $$ = (selector) => document.querySelectorAll(selector);
 const PIXEL_SIZE = 8;
 const canvas = $('#world-wide-canvas');
 const ctx = canvas.getContext('2d');
-const padding = (size) => size - 6;
+const padding = (size) => size - 8;
 
-function componentToHex(c) {
-    var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
-}
-
-function rgbToHex(r, g, b, a = '') {
+function rgbaToHex(r, g, b, a = '') {
+    const componentToHex = (c) => { const hex = c.toString(16); return hex.length == 1 ? "0" + hex : hex };
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b) + componentToHex(a);
 }
 
 const resizeCanvas = () => {
-    canvas.width = padding(document.body.clientWidth);
-    canvas.height = padding(document.body.clientHeight);
+    canvas.width = padding(document.body.getBoundingClientRect().width);
+    canvas.height = padding(document.body.getBoundingClientRect().height);
 }
 
 // size canvas as windows 
 resizeCanvas();
+
 // Resize canvas when window size changes
 window.addEventListener('resize', () => {
     resizeCanvas();
@@ -55,51 +52,45 @@ canvas.addEventListener('click', (e) => {
 
 /** allow to grag to paint */
 let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
 
-canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    lastX = Math.floor(e.offsetX / PIXEL_SIZE);
-    lastY = Math.floor(e.offsetY / PIXEL_SIZE);
-});
+canvas.addEventListener('mousedown', (e) => isDrawing = true);
 
 canvas.addEventListener('mousemove', (e) => {
     if (isDrawing) {
         const x = Math.floor(e.offsetX / PIXEL_SIZE);
         const y = Math.floor(e.offsetY / PIXEL_SIZE);
-
         // random color in hex
         const color = randomColor();
-        // Emit the drawing signal locally
+        // emit the drawing signal locally
         drawSignal.emit({ x, y, color });
-
-        // Send pixel data to server (we'll set up WebSockets next)
+        // send pixel data to server
         sendPixelToServer({ x, y, color });
-
-        lastX = x;
-        lastY = y;
     }
 });
 
-canvas.addEventListener('mouseup', () => {
-    isDrawing = false;
-});
+canvas.addEventListener('mouseup', () => isDrawing = false);
 
 // --- WebSockets ---
 
-// Open WebSocket connection
 let socket = initSocket();
 
+/**
+ * Generates a hex random color with alpha channel
+ * @returns {string} random color in hex
+ */
 function randomColor() {
     // return a hex random color with alpha channel 
     const r = Math.floor(Math.random() * 256);
     const g = Math.floor(Math.random() * 256);
     const b = Math.floor(Math.random() * 256);
     const a = Math.floor(Math.random() * 256);
-    return rgbToHex(r, g, b, a);
+    return rgbaToHex(r, g, b, a);
 }
 
+/**
+ * Initializes a WebSocket connection
+ * @returns {WebSocket} socket
+ */
 function initSocket() {
     let socket = new WebSocket('ws://localhost:3000');
     listenSocketEvents(socket);
@@ -126,13 +117,12 @@ function listenSocketEvents(newSocket) {
         if (data.type === 'STATE') {
             const DATA = 4;
             const width = data.settings.width;
-            const height = data.settings.height;
             const state = new Uint8Array(data.state.split(',').map(Number));
             for (let i = 0; i < state.length; i += DATA) {
-                const color = rgbToHex(state[i], state[i + 1], state[i + 2], state[i + 3]);
+                const color = rgbaToHex(state[i], state[i + 1], state[i + 2], state[i + 3]);
                 const x = i / DATA % width;
                 const y = Math.floor(i / DATA / width);
-                drawPixel(x, y, color);
+                drawSignal.emit({ x, y, color });
             }
         } else {
             drawSignal.emit(data);
