@@ -111,6 +111,12 @@ wss.on('connection', (ws) => {
 });
 
 function returnFile(req, res, contentType) {
+    if (req.url.indexOf('..') > 0) {
+        res.writeHead(HTTP_STATUS_CODES.NOT_FOUND);
+        res.end();
+        return;
+    }
+
     if (!fs.existsSync(path.resolve('', CLIENT_BASE_PATH, req.url.slice(1)))) {
         res.writeHead(HTTP_STATUS_CODES.NOT_FOUND)
         res.end();
