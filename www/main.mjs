@@ -4,8 +4,10 @@ const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
 const PIXEL_SIZE = 8;
 const canvas = $('#world-wide-canvas');
+const onlineCount = $('#online-count');
+const pixelCount = $('#pixel-count');
 const ctx = canvas.getContext('2d');
-const padding = (size) => size - 8;
+const padding = (size) => size - 0;
 
 function rgbaToHex(r, g, b, a = '') {
     const componentToHex = (c) => { const hex = c.toString(16); return hex.length == 1 ? "0" + hex : hex };
@@ -13,8 +15,8 @@ function rgbaToHex(r, g, b, a = '') {
 }
 
 const resizeCanvas = () => {
-    canvas.width = padding(document.body.getBoundingClientRect().width);
-    canvas.height = padding(document.body.getBoundingClientRect().height);
+    canvas.width = padding(document.body.clientWidth);
+    canvas.height = padding(document.body.clientHeight - 64);
 }
 
 // size canvas as windows 
@@ -114,6 +116,10 @@ function listenSocketEvents(newSocket) {
     newSocket.addEventListener('message', (event) => {
         console.log('Received message:', event.data);
         const data = JSON.parse(event.data);
+        if (data.stats) {
+            onlineCount.innerHTML = data.stats.online || 0;
+            pixelCount.innerHTML = data.stats.pixels || 0;
+        }
         if (data.type === 'STATE') {
             const DATA = 4;
             const width = data.settings.width;

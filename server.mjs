@@ -22,7 +22,7 @@ console.log(`WebSocket server is running on ws://localhost:${SOCKET_PORT}`);
  */
 
 /**
- * @type {WebSocket[]}
+ * @type {{ws: WebSocket, id: string}[]}
  */
 let clients = [];
 
@@ -40,6 +40,19 @@ const DATA = 4;
  */
 let state = new Uint8Array(WIDTH * HEIGHT * DATA);
 
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+function stats() {
+    return {
+        online: clients.length,
+        pixels: pixels
+    }
+}
 
 function hexToRgb(hex) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})*$/i.exec(hex);
@@ -75,26 +88,26 @@ const onMessage = (message) => {
     const data = JSON.parse(message.toString());
     pixels++;
     savePixel(data);
-    clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(message, { binary: false });
+    clients.forEach(({ ws }) => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(message, { binary: false });
+            ws.send(JSON.stringify({ stats: stats() }));
         }
     });
 };
 
-/**
- * Clean up when clients disconnect
- */
-const onClose = () => {
-    clients = clients.filter(client => client !== ws);
-};
-
-
 wss.on('connection', (ws) => {
-    clients.push(ws);
-    ws.send(JSON.stringify({ type: 'STATE', settings: { width: WIDTH, height: HEIGHT }, state: state.map(elem => elem === 0 ? '' : elem).toString() }));
+    clients.push({ ws, id: uuidv4() });
+    ws.send(JSON.stringify({
+        type: 'STATE',
+        stats: stats(),
+        settings: { width: WIDTH, height: HEIGHT },
+        state: state.map(elem => elem === 0 ? '' : elem).toString()
+    }));
     ws.on('message', onMessage);
-    ws.on('close', onClose);
+    ws.on('close', () => {
+        clients = clients.filter(client => client.ws !== ws);
+    });
 });
 
 function returnFile(req, res, contentType) {
@@ -112,14 +125,14 @@ const ws = http.createServer((req, res) => {
     try {
         if (req.url === '/' || req.url.indexOf('.html') > 0) {
             return returnFile({ ...req, url: req.url === '/' ? '/index.html' : req.url }, res, 'text/html');
-        } else if (req.url.indexOf('.mjs') || req.url.indexOf('.js')) {
+        } else if (req.url.indexOf('.mjs') > 0 || req.url.indexOf('.js') > 0) {
             return returnFile(req, res, 'application/javascript');
-        }
-        else if (req.url === '/favicon.ico') {
-            return returnFile(req, res, 'image/x-icon');
         }
         else if (req.url.indexOf('.css')) {
             return returnFile(req, res, 'application/stylesheet');
+        }
+        else if (req.url === '/favicon.ico') {
+            return returnFile(req, res, 'image/x-icon');
         }
     } catch (e) {
         console.error(e);

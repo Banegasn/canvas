@@ -4,18 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+        rel="stylesheet">
     <title>Collaborative Pixel Art</title>
-    <style>
-        canvas {
-            border: 1px solid black;
-            cursor: crosshair;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="main.mjs"></script>
+    <script type="module" src="components/button.mjs"></script>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 
-<body style="margin: 0; height: 100%; padding: 0;">
+<body class="m-0 p-0 flex flex-col h-full">
+    <nav class="p-4 bg-gray-800 text-white flex flex-row justify-between min-h-16">
+        <section class="flex flex-row items-center gap-4">
+            <h1 class="text-2xl font-bold">PixelStream</h1>
+        </section>
+        <section class="text-sm flex flex-row items-center gap-2">
+            <span>Online Users: <strong id="online-count">0</strong></span>
+            <span>|</span>
+            <span>Pixels Drawn: <strong id="pixel-count">0</strong></span>
+        </section>
+        <section class="flex flex-row items-center gap-2">
+            <a-button>Color</a-button>
+            <a-button>Settings</a-button>
+            <a-button>About</a-button>
+        </section>
+    </nav>
     <canvas id="world-wide-canvas"></canvas>
-    <script type="module" src="main.mjs"></script>
 </body>
 
 </html>
