@@ -9,6 +9,13 @@ const pixelCount = $('#pixel-count');
 const ctx = canvas.getContext('2d');
 const padding = (size) => size - 0;
 
+document.addEventListener('click', (e) => {
+    if (e.target) {
+        const attribute = e.target.getAttribute('click') || e.target.parentElement.getAttribute('click');
+        attribute && eval(attribute);
+    }
+});
+
 function rgbaToHex(r, g, b, a = '') {
     const componentToHex = (c) => { const hex = c.toString(16); return hex.length == 1 ? "0" + hex : hex };
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b) + componentToHex(a);
@@ -94,27 +101,20 @@ function randomColor() {
  * @returns {WebSocket} socket
  */
 function initSocket() {
-    let socket = new WebSocket('ws://localhost:3000');
+    const domain = window.location.hostname;
+    const port = 3000
+    const socket = new WebSocket(`ws://${domain}:${port}`);
     listenSocketEvents(socket);
     return socket;
 }
 
-/**
- * 
- * @param {WebSocket} newSocket 
- */
 function listenSocketEvents(newSocket) {
     // When the WebSocket connection is open
-    newSocket.addEventListener('open', () => {
-        console.log('WebSocket connection opened.');
-    }, { once: true });
+    newSocket.addEventListener('open', () => { console.log('WebSocket connection opened.'); }, { once: true });
     // Handle socket errors
-    newSocket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
-    });
+    newSocket.addEventListener('error', (error) => { console.error('WebSocket error:', error); });
     // When receiving pixel data from the server
     newSocket.addEventListener('message', (event) => {
-        console.log('Received message:', event.data);
         const data = JSON.parse(event.data);
         if (data.stats) {
             onlineCount.innerHTML = data.stats.online || 0;

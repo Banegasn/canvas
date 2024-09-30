@@ -13,6 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="main.mjs"></script>
     <script type="module" src="components/button.mjs"></script>
+    <script type="module" src="components/color-picker.mjs"></script>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 
@@ -29,9 +30,11 @@
         <section class="flex flex-row items-center gap-2">
             <a-button>Color</a-button>
             <a-button>Settings</a-button>
-            <a-button>About</a-button>
+            <a-button click="alert('hello')">About</a-button>
+
         </section>
     </nav>
+    <a-color-picker></a-color-picker>
     <canvas id="world-wide-canvas"></canvas>
 </body>
 
