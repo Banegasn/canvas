@@ -102,7 +102,7 @@ function randomColor() {
  */
 function initSocket() {
     const domain = window.location.hostname;
-    const port = 3000;
+    const port = 8080;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = new WebSocket(`${protocol}//${domain}:${port}`);
     listenSocketEvents(socket);

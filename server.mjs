@@ -3,7 +3,7 @@ import http from "http";
 import path from "path";
 import fs from "fs";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const CLIENT_BASE_PATH = 'www';
 const HTTP_STATUS_CODES = {
     "OK": 200,
