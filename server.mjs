@@ -3,19 +3,43 @@ import http from "http";
 import path from "path";
 import fs from "fs";
 
-const PORT = 4200;
-const SOCKET_PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const CLIENT_BASE_PATH = 'www';
 const HTTP_STATUS_CODES = {
-    /** Success */
     "OK": 200,
     "NOT_FOUND": 404,
     "INTERNAL_SERVER_ERROR": 500
 }
 
-const wss = new WebSocketServer({ port: SOCKET_PORT });
+const server = http.createServer((req, res) => {
+    try {
+        if (req.url === '/' || req.url.indexOf('.html') > 0) {
+            return returnFile({ ...req, url: req.url === '/' ? '/index.html' : req.url }, res, 'text/html');
+        } else if (req.url.indexOf('.mjs') > 0 || req.url.indexOf('.js') > 0) {
+            return returnFile(req, res, 'application/javascript');
+        }
+        else if (req.url.indexOf('.css')) {
+            return returnFile(req, res, 'application/stylesheet');
+        }
+        else if (req.url === '/favicon.ico') {
+            return returnFile(req, res, 'image/x-icon');
+        }
+    } catch (e) {
+        console.error(e);
+        res.writeHead(HTTP_STATUS_CODES.NOT_FOUND);
+        res.end();
+    }
+});
 
-console.log(`WebSocket server is running on ws://localhost:${SOCKET_PORT}`);
+
+server.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}/`);
+});
+
+
+const wss = new WebSocketServer({ server });
+
+console.log(`WebSocket server is running on ws://localhost:${PORT}`);
 
 /**
  * @typedef {{x: number, y: number, color: string }} PaintMessage
@@ -126,29 +150,4 @@ function returnFile(req, res, contentType) {
     res.writeHead(HTTP_STATUS_CODES.OK, { 'Content-Type': contentType });
     return fs.createReadStream(path.resolve('', CLIENT_BASE_PATH, req.url.slice(1))).pipe(res);
 }
-
-const ws = http.createServer((req, res) => {
-    try {
-        if (req.url === '/' || req.url.indexOf('.html') > 0) {
-            return returnFile({ ...req, url: req.url === '/' ? '/index.html' : req.url }, res, 'text/html');
-        } else if (req.url.indexOf('.mjs') > 0 || req.url.indexOf('.js') > 0) {
-            return returnFile(req, res, 'application/javascript');
-        }
-        else if (req.url.indexOf('.css')) {
-            return returnFile(req, res, 'application/stylesheet');
-        }
-        else if (req.url === '/favicon.ico') {
-            return returnFile(req, res, 'image/x-icon');
-        }
-    } catch (e) {
-        console.error(e);
-        res.writeHead(HTTP_STATUS_CODES.NOT_FOUND);
-        res.end();
-    }
-});
-
-ws.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/`);
-});
-
 
